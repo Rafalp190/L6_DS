@@ -164,3 +164,16 @@ wordcloud(words[1:200], freq_word[1:200], random.order = F, colors = brewer.pal(
 
 ```
 
+Con la información de bigramas y trigramas se obtuvieron los siguientes insights:
+
+* a  
+* b  
+* c  
+* d  
+* e 
+
+## Conclusiones
+
+* a
+* b
+* c
