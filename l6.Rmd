@@ -1,0 +1,166 @@
+---
+title: "Análisis de Redes Sociales"
+author: "Rafael Leon, Alejandro Vasquez, Oliversinn Mazariegos"
+date: "17 de Octubre de 2018"
+output: 
+  html_document:
+
+    number_sections: false
+
+    toc: true
+
+    fig_width: 8
+
+    fig_height: 6
+    
+    self_contained: true
+    
+    df_print: kable
+
+    theme: cosmo
+
+    highlight: tango
+
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(wordcloud)
+library(quanteda)
+library(tm)
+library(ggplot2)
+library(dplyr)
+library(plyr)
+library("tidyr")
+library(RWeka)
+
+
+
+```
+
+# Problema
+Se quieren extraer los datos realcionados con el trafico en la ciudad de Guatemala. Utilizando Twitter. Se utilizará la biblioteca twitteR para realizar la extracción de los datos. Esta interfaz no se comparte en este Rmd. Para proteger las credenciales del API de Twitter. Se estará sourcing a otro documento adjunto llamado *"tweetSweeper.R"*. 
+
+## Paso 1 Extraccion de datos de twitter
+
+Se utilizará la función vigilante para extraer tweets relacionados a tráficoGT utilizando un vector de términos con un máximo de 1000 tweets por término por las limitaciones del API de twitter.
+
+```{r load df}
+tweetDF <- read.csv("GeneralSweep.csv", encoding="UTF-8")
+txt <- iconv(tweetDF$text, to="ASCII//TRANSLIT")
+
+#Se le alimenta el vector de cada data frame con los tweets a esta linea para generar diferentes wordclouds
+corpus <- Corpus(VectorSource(txt))
+```
+
+
+## Paso 2 Preprocesamiento de los tweets.
+
+Para la limpieza de datos realizaremos los siguientes pasos.  
+
+* Pasar todo a minusculas.
+* Remover los simbolos de puntuacion.
+* Remover los numeros.  
+* Remover los espacios en blanco.  
+* Remover los StopWords
+
+
+```{r preprocessing}
+tweets_cl <- corpus %>% 
+  tm_map(tolower) %>% 
+  tm_map(stripWhitespace) %>% 
+  tm_map(removePunctuation) %>% 
+  tm_map(removeWords, c(stopwords("spanish"))) %>% 
+  tm_map(removeNumbers) %>% 
+  tm_map(stripWhitespace)
+```
+
+## Paso 3 Análisis exploratorio de los datos
+
+Se realizó un análisis exploratorio de los tweets para obtener insights interesantes sobre el tráfico en la ciudad de guatemala.
+
+### Document Term Matrix
+
+La matriz de terminos nos ayudara a obtener una lista de cada palabra por separado.
+
+```{r dtm}
+dtm <-  DocumentTermMatrix(tweets_cl)
+dtm2 <- as.matrix(dtm)
+```
+
+
+### WordCloud e Histograma
+
+Con la matriz de terminos realizada, representemos con una nube de palabras las palabras que mas se repiten y veremos con un grafico de barras la frecuencia de estas mismas.
+
+```{r wordCloud}
+freq_word = colSums(dtm2)
+freq_word = sort(freq_word, decreasing = T)
+words = names(freq_word)
+
+#plot
+wordcloud(words[1:200], freq_word[1:200], random.order = F, colors = brewer.pal(8,'Dark2'))
+
+#histogram
+freq_matrix = as.matrix(freq_word)
+colnames(freq_matrix) = 'n'
+cuantos = freq_matrix
+freq_matrix = c(row.names(freq_matrix),cuantos)
+par(mar=c(5,12,4,2))
+barplot(head(freq_word,30), horiz = T, las = 1, col = c(1:30))
+
+```
+
+Amilcar Montejo aparece referenciado muchas veces ya que es la persona responsable de los reportes de tránsito en guatemala. Aparte de eso se ven palabras clave como:  
+
+* Zona  
+* Colonia
+* Belice (Por el puente)
+* Pesado  
+* Livianos  
+* Carril  
+
+
+Algo interesante de notar es la presencia de palabras como *migrantes*, *honduras*. Estos son temas que afectaron al tráfico esta ultima semana debido a la migración masiva de hondureños que estuvieron albergados en **La Casa del Migrante** en la Z1 capitalina. Además de las personas que transitaron por las carreteras de la república de Guatemala, en camino a la frontera mexicana.
+
+Se considera que un análisis de unigramas no es suficiente para obtener contexto de la naturaleza de los tweets entonces como siguiente paso se analizarán bigramas y trigramas
+
+### Bigramas y Trigramas
+Se utilizó RWeka para realizar bigramas y trigramas
+
+```{r}
+#Funciones para hacer bi y trigramas
+
+BigramTokenizer <- function(x) {RWeka::NGramTokenizer(x, RWeka::Weka_control(min=2, max=2))}
+ThreegramTokenizer <- function(x) {RWeka::NGramTokenizer(x, RWeka::Weka_control(min=3, max=3))}
+
+
+## Bigramas
+
+bigram <- TermDocumentMatrix(tweets_cl, control = list(tokenize = BigramTokenizer))
+
+m <- as.matrix(bigram)
+
+freq_word = rowSums(m)
+freq_word = sort(freq_word, decreasing = T)
+words = names(freq_word)
+
+#plot
+wordcloud(words[1:200], freq_word[1:200], random.order = F, colors = brewer.pal(8,'Dark2'))
+
+
+## Trigramas
+
+trigram <- TermDocumentMatrix(tweets_cl, control = list(tokenize = ThreegramTokenizer))
+
+m <- as.matrix(trigram)
+freq_word = rowSums(m)
+freq_word = sort(freq_word, decreasing = T)
+words = names(freq_word)
+
+wordcloud(words[1:200], freq_word[1:200], random.order = F, colors = brewer.pal(8,'Dark2'))
+
+```
+
