@@ -139,7 +139,9 @@ ThreegramTokenizer <- function(x) {RWeka::NGramTokenizer(x, RWeka::Weka_control(
 
 ## Bigramas
 
-bigram <- TermDocumentMatrix(tweets_cl, control = list(tokenize = BigramTokenizer))
+tweets_cl2 <- VCorpus(VectorSource(tweets_cl))
+
+bigram <- TermDocumentMatrix(tweets_cl2, control = list(tokenize = BigramTokenizer))
 
 m <- as.matrix(bigram)
 
@@ -153,7 +155,7 @@ wordcloud(words[1:200], freq_word[1:200], random.order = F, colors = brewer.pal(
 
 ## Trigramas
 
-trigram <- TermDocumentMatrix(tweets_cl, control = list(tokenize = ThreegramTokenizer))
+trigram <- TermDocumentMatrix(tweets_cl2, control = list(tokenize = ThreegramTokenizer))
 
 m <- as.matrix(trigram)
 freq_word = rowSums(m)
