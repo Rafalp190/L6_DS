@@ -130,7 +130,7 @@ Se considera que un análisis de unigramas no es suficiente para obtener context
 ### Bigramas y Trigramas
 Se utilizó RWeka para realizar bigramas y trigramas
 
-```{r}
+```{r, warning=F}
 #Funciones para hacer bi y trigramas
 
 BigramTokenizer <- function(x) {RWeka::NGramTokenizer(x, RWeka::Weka_control(min=2, max=2))}
@@ -168,14 +168,14 @@ wordcloud(words[1:200], freq_word[1:200], random.order = F, colors = brewer.pal(
 
 Con la información de bigramas y trigramas se obtuvieron los siguientes insights:
 
-* a  
-* b  
-* c  
-* d  
-* e 
+* Ocurrió algo en el puente de belice que cerró el puente por varias horas. Investigar noticias que hablen del tema.    
+* El tráfico en ciudad san cristobal es un tema importante por lo que se debería revisar que lo causa.  
+* Las noticias de tráfico afuera de la ciudad de guatemala parecen tener menos importancia que las dentro de la ciudad.  
+* Se debe investigar que causa que los transportes pesados sean tan importantes para el incremento del tráfico. También se podría investigar si solo fue un evento o si ocurrió varias veces durante la semana.
+* Los reportes de tráfico parecen venir de personas en colonias y tratando de conseguir ayuda con frases como: **agradezco su apoyo** dirigidas a Amilcar Montejo. Para la solución de los problemas de tránsito.
 
 ## Conclusiones
 
-* a
-* b
-* c
+* Los eventos más importantes de la semana que afectaron el tráfico fueron el cierre del puente de belice, la migración hondureña y desperfectos mecánicos de transporte pesado.
+* Se puede analizar el sentimiento de los mensajes para determinar la intención de las personas al twittearle a *#transitogt* y a *#traficogt*.
+* Se puede observar que prensaibre y otros medios se comunican con los hashtags. Por lo que se podrían hacer análisis de redes sociales para determinar que otros actores están involucrados en estos tweets.
